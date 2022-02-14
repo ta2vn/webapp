@@ -9,7 +9,7 @@
 > - Simple structure for easy-to-understand
 > - Quick deployment
 # Demo
-![Demo](/demo.png?raw=true "Demo code")
+![Demo](https://github.com/ta2vn/webapp/blob/main/Demo.png?raw=true "Demo code")
 
 # Community
 - First and foremost: Star and watch this repository to stay up-to-date.
