@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restful Tools</title>
+    <script type="text/javascript" src="/script.js"></script>
+
+</head>
+
+<body>
+    <div>
+        <select class="mymethod">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="DELETE">DELETE</option>
+        </select>
+        <input class="myurl" placeholder="enter url" style="width: 50%;">
+        <button class="btn">Send</button><button class="btn1">Copy</button><button class="btn2" title="Test JSON">JSON</button>
+        <br />
+        <textarea class="input" placeholder="enter input" style="width: 49%;min-height: 160px;"></textarea>
+        <textarea class="output" style="width: 49%;min-height: 160px;"></textarea>
+        <hr>
+		
+		<form enctype="multipart/form-data" method="POST" action="upload" >
+		<input name="mode" value="upload"><input name="mode1" value="upload1">
+		<input type="file" name="myfile" multiple>
+		<input type="submit" value="ok">
+		</form>
+    </div>
+    <script>
+        
+        function submit() {
+            let btn = this;
+            
+            let papa = btn.parentNode;
+            let mymethod = papa.querySelector(".mymethod")
+            let myurl = papa.querySelector(".myurl")
+            let input = papa.querySelector(".input")
+            let output = papa.querySelector(".output")
+            if (mymethod.value == "GET") {
+                ajax(myurl.value, function (str) {
+                    output.value = str;
+                },alert)
+            } else {
+                ajax1(mymethod.value, myurl.value, input.value, function (str) {
+                    output.value = str;
+                },alert)
+            }
+        }
+       
+        function copy(){
+            let btn = this;
+            let papa = btn.parentNode;
+            let npapa = papa.cloneNode(true);
+            document.body.appendChild(npapa);
+            document.querySelectorAll(".btn").forEach(function(e){e.addEventListener("click",submit)}) ;
+            document.querySelectorAll(".btn1").forEach(function(e){e.addEventListener("click",copy)}) ;
+            document.querySelectorAll(".btn2").forEach(function(e){e.addEventListener("click",testJson)}) ;
+        }
+
+        function testJson(){
+            let btn = this;           
+            let papa = btn.parentNode;
+            let output = papa.querySelector(".output")
+            try{
+            console.log(JSON.parse(output.value));
+            alert("Test OK")
+            }catch(ee){
+              alert(ee)
+            }
+        }
+
+        document.querySelector(".myurl").value = window.location;
+        document.querySelector(".btn").addEventListener("click",submit);
+        document.querySelector(".btn1").addEventListener("click",copy);
+        document.querySelector(".btn2").addEventListener("click",testJson);
+
+    </script>
+</body>
+
+</html>
