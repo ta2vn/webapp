@@ -26,7 +26,7 @@ namespace Tlang
             FileStream fs = Pools.ContainsKey(fileName) ? Pools[fileName] : null;
             if (fs == null || !fs.CanRead)
             {
-                fs = new FileStream(fileName, FileMode.Open);
+                fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
                 if (Pools.ContainsKey(fileName))
                 {
                     Pools.Remove(fileName);
@@ -91,6 +91,44 @@ namespace Tlang
             DB db = new DB(fileName);
             DBs.Add(fileName, db);
             return db;
+        }
+
+        public static string OpenText(string fileName)
+        {
+            byte[] buffer = OpenBinary(fileName);
+            if (buffer == null) return "";
+            if (buffer.Length > 2)
+            {
+                if (buffer[0] == 0xFF)
+                {
+                    if (buffer[1] == 0xFE)
+                    {
+                        if (buffer[2] == 0x00)
+                        {
+                            //HeaderByte = IO.SubBytes(buffer, 0, 4);
+                            return Encoding.UTF32.GetString(F.SubBytes(buffer, 4));
+                        }
+                        //HeaderByte = IO.SubBytes(buffer, 0, 2);
+                        return Encoding.Unicode.GetString(F.SubBytes(buffer, 2));
+                    }
+                }
+                if (buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF)
+                {
+                    //HeaderByte = IO.SubBytes(buffer, 0, 3);
+                    return Encoding.UTF8.GetString(F.SubBytes(buffer, 3));
+                }
+            }
+            return Encoding.UTF8.GetString(buffer);
+        }
+
+        public static byte[] OpenBinary(string fileName)
+        {
+            FileStream fs = GetFile(fileName);
+            byte[] data = new byte[(int)fs.Length];
+            fs.Seek(0, SeekOrigin.Begin);
+            fs.Read(data, 0, data.Length);
+            fs.Close();
+            return data;
         }
 
         public static void CloseAll()

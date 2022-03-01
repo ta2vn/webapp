@@ -26,6 +26,7 @@ namespace Tlang.Web
         public long ContentLength = 0;
         public string Accept = "";
         public string UserName = "";
+        public string Room = "";
         public string FileName = "";
         public string[] Headers;
         public byte[] Data;
@@ -47,37 +48,21 @@ namespace Tlang.Web
 
         public int Status = 0;
 
-        public bool HasRange()
+        public bool IsDone
         {
-            foreach (string h in Headers)
+            get
             {
-                if (h.StartsWith("Range"))
+                if (_Con != null)
                 {
-                    Console.WriteLine(h);
-                    int j = h.IndexOf('=');
-                    if (j > 0)
-                    {
-                        string[] u = h.Substring(j + 1).Trim().Split('-');
-                        if (u.Length == 2)
-                        {
-                            long s = 0;
-                            long.TryParse(u[0], out s);
-                            long l = -1;
-                            if (u[1].Trim().Length > 0)
-                            {
-                                long.TryParse(u[1], out l);
-                            }
-                            RangeStart = s;
-                            RangeLength = l;
-                            return true;
-                        }
-                    }
+                    return _Con.IsDone;
                 }
+                return false;
             }
-            return false;
         }
+
+        public bool HasRange = false;
         public long RangeStart = 0;
-        public long RangeLength = 0;
+        public long RangeEnd = 0;
 
         public void UpdateGet(string content)
         {
@@ -124,6 +109,52 @@ namespace Tlang.Web
                     Charset = ContentType.Substring(j + 8).Trim();
                 }
             }
+            if (Head.ContainsKey(G.Range))
+            {
+                string h = Head[G.Range].ToString();
+                j = h.IndexOf('=');
+                if (j > 0)
+                {
+                    string[] u = h.Substring(j + 1).Trim().Split('-');
+                    if (u.Length == 2)
+                    {
+                        long s = 0;
+                        long.TryParse(u[0], out s);
+                        long l = -1;
+                        if (u[1].Trim().Length > 0)
+                        {
+                            long.TryParse(u[1], out l);
+                        }
+                        RangeStart = s;
+                        RangeEnd = l;
+                    }
+                    HasRange = true;
+                }
+            }
+            else
+            {
+                HasRange = false;
+            }
+        }
+
+        public string Authorization()
+        {
+            if (Head.ContainsKey(G.Authorization))
+            {
+                try
+                {
+                    string s = Head[G.Authorization].ToString();
+                    if (s.StartsWith("Basic "))
+                    {
+                        s = s.Substring(6);
+                    }
+                    byte[] d = Convert.FromBase64String(s);
+                    string s1 = Encoding.ASCII.GetString(d);
+                    return s1;
+                }
+                catch { }
+            }
+            return "";
         }
 
         private string GetCookie(string[] headers)

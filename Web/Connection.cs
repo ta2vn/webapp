@@ -2,7 +2,7 @@
     MIT license
     Ping tatadoan@outlook.com for Info | Bug | More Feature
     I'd be happy to have a response
- */
+*/
 using System;
 using System.Configuration;
 using System.Net;
@@ -32,6 +32,7 @@ namespace Tlang.Web
 
         public MemoryStream mem = new MemoryStream();
         public MemoryStream memchun;
+        public bool IsEndWhenDone = false;//http 1.0 end when done
         public bool IsRun = false;
         public bool IsDone = false;
         public bool IsError = false;
@@ -52,7 +53,8 @@ namespace Tlang.Web
         bool fs = false;
         byte[] receiveData;
         public string Paras = "";
-        Request req;
+        public Request req;
+        public Response res;
 
         
 
@@ -242,28 +244,54 @@ namespace Tlang.Web
                     if (Sock.Available == 0)
                     {
                         Thread.Sleep(2);
-                        tryCount++;
-                        if (tryCount > 500)
+                        if (IsStream || IsWebSocket || IsChunked)
                         {
-                            IsRun = false;
-                            IsTimeOut = true;
+
+                        }
+                        else
+                        {
+                            tryCount++;
+                            if (tryCount > 500)
+                            {
+                                IsRun = false;
+                                IsTimeOut = true;
+                                //Console.WriteLine("TimeOut: con Count " + Parent.Connections.Count);
+                                break;
+                            }
                         }
                         continue;
                     }
                     readbyte = Sock.Receive(buffer);
                     if (Sock.Connected && readbyte > 0)
                     {
+                        tryCount = 0;
                         mem.Write(buffer, 0, readbyte);
                         CheckPool();
+                    }
+                    if (IsEndWhenDone)
+                    {
+                        if (Parent.Connections.Count > 0)
+                        {
+                            if (Parent.Connections.Contains(this))
+                            {
+                                Parent.Connections.Remove(this);
+                            }
+                        }
+                        Sock.Close();
+                        return;
                     }
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Connection Error:" + ex.Message);
+                IsError = true;
+            }
+            finally
+            {
                 IsDone = true;
                 IsRun = false;
-                IsError = true;
+                
                 //Console.WriteLine("Out: " + Parent.Connection[Key].Handler.RemoteEndPoint);
                 //Console.WriteLine(Encoding.ASCII.GetString(buffer));
                 if (req != null)
@@ -273,22 +301,29 @@ namespace Tlang.Web
                         IO.GetFile(req.FileName).Close();
                     }
                 }
-                if (Parent.Connections.Count > 0)
+                if (IsWebSocket)
                 {
-                    if (Parent.Connections.Contains(this))
+                    if (Parent.ConnectionWebSockets.Count > 0)
                     {
-                        Sock.Close();
-                        Parent.Connections.Remove(this);
+                        if (Parent.ConnectionWebSockets.Contains(this))
+                        {
+                            Sock.Close();
+                            Parent.ConnectionWebSockets.Remove(this);
+                        }
                     }
                 }
-                if (Parent.ConnectionWebSockets.Count > 0)
+                else
                 {
-                    if (Parent.ConnectionWebSockets.Contains(this))
+                    if (Parent.Connections.Count > 0)
                     {
-                        Sock.Close();
-                        Parent.ConnectionWebSockets.Remove(this);
+                        if (Parent.Connections.Contains(this))
+                        {
+                            Sock.Close();
+                            Parent.Connections.Remove(this);
+                        }
                     }
                 }
+                
             }
         }
 
@@ -320,6 +355,7 @@ namespace Tlang.Web
                             mem.Position = 0;
                             mem.SetLength(0);
                             mem.Write(buffer, ContentIndex, readbyte - ContentIndex);
+                            res = new Response(this);
                             ReadBoundary();
                         }
                         else
@@ -347,7 +383,7 @@ namespace Tlang.Web
             IsDone = true;
             IsRun = false;
             boundaryKey = null;
-            
+            Paras = "";
             mem.Position = 0;
             mem.SetLength(0);
             Headers = null;
@@ -367,8 +403,10 @@ namespace Tlang.Web
                 req.UpdatePost(Paras);
             }
             req.Data = data;
-            Response res = new Response(this);
-            
+            if (res == null)
+            {
+                res = new Response(this);
+            }            
             Parent.Hand(req, res);
         }
 
@@ -398,8 +436,8 @@ namespace Tlang.Web
                     if (mm.Length == boundaryKey.Length + 4)//xong fim
                     {
 
-                        Response res = new Response(this);
-
+                        
+                        IsDone = true;
                         Parent.Hand(req, res);
                         Done();
                         return;
@@ -428,7 +466,7 @@ namespace Tlang.Web
                             req.UpdatePost(Paras);
                             CutStream(mem, beginbody);
                             req.FileName = fname;
-                            Response res = new Response(this);
+                            //Response res = new Response(this);
                             BoundaryDone = false;
                             Parent.Hand(req, res);
 
@@ -448,6 +486,7 @@ namespace Tlang.Web
 
         public bool ReadStream()
         {
+            tryCount = 0;
             if (BoundaryDone)
             {
                 return false;
@@ -498,18 +537,22 @@ namespace Tlang.Web
                 headerString = Encoding.UTF8.GetString(hbuffer);//tai sao utf 7
             }
             Headers = headerString.Split(new string[] { "\r\n" }, StringSplitOptions.None);
-
-
+            //Console.WriteLine("\r\n");
+            //Console.WriteLine(headerString);
 
             HeadLength = hbuffer.Length;
 
-
+            IsDone = false;
 
 
             req = new Request(this);
             req.Headers = Headers;
 
             string h0 = Headers[0];
+            if (h0.IndexOf("HTTP/1.0")>0)// http 1.0
+            {
+                IsEndWhenDone = true;
+            }
             string method = h0.Substring(0, h0.IndexOf(' '));
             int j = h0.IndexOf('/');
             string url = "";
@@ -564,7 +607,7 @@ namespace Tlang.Web
             if (req.Head.ContainsKey(G.Connection))
             {
                 string conn = req.Head[G.Connection].ToString();
-                if (conn.IndexOf("keep-alive") >= 0)
+                if (conn.ToLower().IndexOf("keep-alive") >= 0)
                 {
                     IsKeepAlive = true;
                 }
@@ -622,6 +665,15 @@ namespace Tlang.Web
                     Parent.WebSocketConnected(req, res);
                 }
                 Console.WriteLine("Websocket Client connected");
+            }
+            else
+            {
+                if (res != null)
+                {
+                    res.Handled = false;
+                    res.Data = null;
+                    res.Content = "";
+                }
             }
 
             ContentIndex = HeadLength + 4;//0x0D, 0x0A, 0x0D, 0x0A
@@ -862,14 +914,36 @@ namespace Tlang.Web
             }
         }
 
-        public void SendWebSocket(string text,string userName)
+        public void SendWebSocket(string text, string userName)
         {
+            byte[] data = BinaryBuilder.WebSocket(Encoding.UTF8.GetBytes(text), true);
             for (int i = 0; i < Parent.ConnectionWebSockets.Count; i++)
             {
                 Connection con = Parent.ConnectionWebSockets[i];
-                if (con.req != null && con.req.UserName == userName)
+                if (con.req != null && con.IsWebSocket&& con.req.UserName == userName)
                 {
-                    con.SendWebSocket(text);
+                    try
+                    {
+                        con.Send(data);
+                    }
+                    catch { }
+                }
+            }
+        }
+
+        public void SendWebSocketRoom(string text, string room)
+        {
+            byte[] data = BinaryBuilder.WebSocket(Encoding.UTF8.GetBytes(text), true);
+            for (int i = 0; i < Parent.ConnectionWebSockets.Count; i++)
+            {
+                Connection con = Parent.ConnectionWebSockets[i];
+                if (con.req != null && con.IsWebSocket && con.req.Room == room)
+                {
+                    try
+                    {
+                        con.Send(data);
+                    }
+                    catch { }
                 }
             }
         }

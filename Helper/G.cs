@@ -37,6 +37,10 @@ namespace Tlang.Web
 
         public const string Connection = "Connection";
 
+        public const string Authorization = "Authorization";
+
+        public const string Range = "Range";
+
         
 
         public static byte[] WebHeaderBreak = new byte[] { 0x0D, 0x0A, 0x0D, 0x0A };

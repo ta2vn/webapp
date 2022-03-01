@@ -24,6 +24,7 @@ namespace Tlang.Web
         public string Charset = "";
         public bool Handled = false;
         public List<string> Headers = new List<string>();
+        public string Content = "";
         public byte[] Data;
 
         public bool ReadStream()
@@ -39,14 +40,21 @@ namespace Tlang.Web
         public void SendFile(string filename)
         {
             Handled = true;
-            BinaryBuilder.SendFile(filename, _Con);
+            if (_Con.req.HasRange)
+            {
+                BinaryBuilder.SendFileWithRange(filename, _Con, _Con.req.RangeStart, _Con.req.RangeEnd);
+            }
+            else
+            {
+                BinaryBuilder.SendFile(filename, _Con);
+            }
         }
 
         public void JSON(object obj)
         {
             Handled = true;
             ContentType = "text/json";
-            Data = BinaryBuilder.Message(Reader.ToJSON(obj), "200", ContentType);
+            Data = BinaryBuilder.Html(Reader.ToJSON(obj), "200", ContentType);
             _Con.Send(Data);
         }
 
@@ -86,7 +94,7 @@ namespace Tlang.Web
         {
             Handled = true;
             string s = "<script>document.cookie=\"" + name + "=" + System.Uri.EscapeDataString(value) + "; expires=" + T.GMT(System.DateTime.Now.AddMilliseconds(expires)) + "; path=/\"; document.location.href=\"" + T.EncodeString(url) + "\";</script>";
-            Data = BinaryBuilder.Message(s, "200", ContentType);
+            Data = BinaryBuilder.Html(s, "200", ContentType);
             _Con.Send(Data);
         }
 
@@ -110,6 +118,12 @@ namespace Tlang.Web
             _Con.SendWebSocket(text, username);
         }
 
+        public void SendSocketRoom(string text, string room)
+        {
+            Handled = true;
+            _Con.SendWebSocketRoom(text, room);
+        }
+
         public void End()
         {
             _Con.Sock.Disconnect(true);
@@ -126,7 +140,14 @@ namespace Tlang.Web
         {
             Handled = true;
             string html = tem.Render(value);
-            Data = BinaryBuilder.Message(html, "200", ContentType);
+            Data = BinaryBuilder.Html(html, "200", ContentType);
+            _Con.Send(Data);
+        }
+
+        public void Unauthorized()
+        {
+            Handled = true;
+            Data = BinaryBuilder.Unauthorized("vip area",Headers.ToArray());
             _Con.Send(Data);
         }
     }

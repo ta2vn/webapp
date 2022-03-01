@@ -92,6 +92,14 @@ namespace Tlang
             return true;
         }
 
+        public static byte[] AddBytes(byte[] data, byte[] data1)
+        {
+            byte[] n = new byte[data.Length + data1.Length];
+            Buffer.BlockCopy(data, 0, n, 0, data.Length);
+            Buffer.BlockCopy(data1, 0, n, data.Length, data1.Length);
+            return n;
+        }
+
         public static byte[] SubBytes(byte[] data, int start, int length)
         {
             byte[] d = new byte[length];

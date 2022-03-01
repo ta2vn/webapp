@@ -270,11 +270,25 @@ namespace Tlang.Web
                     object kq = han(req, res);
                     if (!res.Handled)
                     {
-                        if (res.Data == null)
+                        if (req.IsDone)
                         {
-                            res.Data = BinaryBuilder.Message(kq.ToString(), res.ResponseCode, res.ContentType, res.Charset, res.Headers.ToArray());
+                            if (res.Data == null)
+                            {
+                                if (res.Content.Length > 0)
+                                {
+                                    res.Data = BinaryBuilder.Html(res.Content, res.ResponseCode, res.ContentType, res.Charset, res.Headers.ToArray());
+                                }
+                                else
+                                {
+                                    res.Data = BinaryBuilder.Html(kq.ToString(), res.ResponseCode, res.ContentType, res.Charset, res.Headers.ToArray());
+                                }
+                            }
+                            res.Send(res.Data);
                         }
-                        res.Send(res.Data);
+                        else
+                        {
+                            res.Content += kq.ToString();
+                        }
                     }
                 }
                 else
@@ -294,19 +308,6 @@ namespace Tlang.Web
        
 
         
-
-        //public void RecieveStream(Connection sender, byte[] value, int start, int length, int status)
-        //{
-        //    //OnReceiveStream(sender, value, start, length, status);
-        //    if (value != null)
-        //    {
-        //        Console.WriteLine("stream " + value.Length + " start:" + start + " length:" + length + " status:" + status);
-        //    }
-        //    else
-        //    {
-        //        Console.WriteLine("stream  start:" + start + " length:" + length + " status:" + status);
-        //    }
-        //}
 
         private WebHandle Find(string url, string method, Request req)
         {
@@ -533,6 +534,40 @@ namespace Tlang.Web
             }
         }
 
-        
+        public List<string> GetAllUserInRoom(string room)
+        {
+            List<string> users = new List<string>();
+            for (int i = 0; i < ConnectionWebSockets.Count; i++)
+            {
+                Connection con = ConnectionWebSockets[i];
+                if (con.req != null)
+                {
+                    string user = con.req.UserName;
+                    if (!users.Contains(user))
+                    {
+                        users.Add(user);
+                    }
+                }
+            }
+            return users;
+        }
+
+        public List<string> GetAllRoom()
+        {
+            List<string> rooms = new List<string>();
+            for (int i = 0; i < ConnectionWebSockets.Count; i++)
+            {
+                Connection con = ConnectionWebSockets[i];
+                if (con.req != null)
+                {
+                    string room = con.req.Room;
+                    if (!rooms.Contains(room))
+                    {
+                        rooms.Add(room);
+                    }
+                }
+            }
+            return rooms;
+        }
     }
 }

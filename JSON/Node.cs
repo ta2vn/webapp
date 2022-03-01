@@ -16,6 +16,24 @@ namespace Tlang.JSON
 
         }
 
+        public object this[string name]
+        {
+            get
+            {
+                if (base.ContainsKey(name))
+                    return base[name];
+                else
+                    return null;
+            }
+            set
+            {
+                if (base.ContainsKey(name))
+                    base[name] = value;
+                else
+                    base.Add(name, value);
+            }
+        }
+
         public void Set(string name, object value)
         {
             if (ContainsKey(name))
@@ -29,14 +47,7 @@ namespace Tlang.JSON
         }
 
 
-        public object Get(string name)
-        {
-            if (ContainsKey(name))
-            {
-                return this[name];
-            }
-            return null;
-        }
+        
 
         public string GetString(string name)
         {

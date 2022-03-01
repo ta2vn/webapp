@@ -1254,5 +1254,68 @@ namespace Tlang
             }
             return null;
         }
+
+        public static NodeArray FromCSVString(string content,char sep)
+        {
+            string[] lines = content.Split('\n');
+            string[] heads = lines[0].Split(sep);
+
+            for (int i = 0; i < heads.Length; i++)
+            {
+                heads[i] = heads[i].Trim();
+            }
+
+            NodeArray list = new NodeArray();
+            for (int r = 1; r < lines.Length; r++)
+            {
+                Node node = new Node();
+                string line = lines[r].TrimEnd('\r');
+                string[] values = line.Split(sep);
+                int l = Math.Min(values.Length,heads.Length);
+                for (int h = 0; h < l; h++)
+                {
+                    node.Set(heads[h], values[h]);
+                }
+                list.Add(node);
+            }
+            return list;
+        }
+
+
+        public static NodeArray FromCSVString(string content)
+        {
+            string line0 = "";
+            int j = content.IndexOf('\n');
+            if (j > 0)
+            {
+                line0 = content.Substring(0, j);
+            }
+            else
+            {
+                line0 = content;
+            }
+            char sep = ';';
+            j = line0.IndexOf(',');
+            if (j > 0)
+            {
+                sep = ',';
+            }
+            else
+            {
+                j = line0.IndexOf('\t');
+                if (j > 0)
+                {
+                    sep = '\t';
+                }
+            }
+            return FromCSVString(content, sep);
+        }
+
+        public static NodeArray FromCSVFile(string fileName)
+        {
+            string content = IO.OpenText(fileName);
+            return FromCSVString(content);
+        }
+
     }
 }

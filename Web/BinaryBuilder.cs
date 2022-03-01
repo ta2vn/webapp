@@ -156,7 +156,7 @@ namespace Tlang.Web
             catch (Exception ex)
             {
                 Console.WriteLine("SendFileOnWeb " + fileName + "===>" + ex.Message);
-                socket.Send(Message("File not found", "404", "error"));
+                socket.Send(Html("File not found", "404", "error"));
             }
             return false;
         }
@@ -181,7 +181,7 @@ namespace Tlang.Web
                     //error
 
                     //MessageOnWeb("ERROR", "200", "text/plain");
-                    socket.Send(Message("File Over Start", "200", "error"));
+                    socket.Send(Html("File Over Start", "200", "error"));
                     return false;
                 }
                 if (end >= flength)
@@ -242,18 +242,18 @@ namespace Tlang.Web
             }
             else
             {
-                socket.Send(Message("File not found", "404", "error"));
+                socket.Send(Html("File not found", "404", "error"));
             }
             return false;
         }
 
         #region Data
-        public static byte[] Message(string message, string responseCode, string contentType)
+        public static byte[] Html(string message, string responseCode, string contentType)
         {
-            return Message(message, responseCode, contentType, "", new string[] { });
+            return Html(message, responseCode, contentType, "", new string[] { });
         }
 
-        public static byte[] Message(string message, string responseCode, string contentType, string charset,string[] header)// header and content
+        public static byte[] Html(string message, string responseCode, string contentType, string charset,string[] header)// header and content
         {
             System.Text.Encoding ee = (charset.Length > 0) ? System.Text.Encoding.GetEncoding(charset) : System.Text.Encoding.ASCII;
             byte[] data = ee.GetBytes(message);
@@ -264,7 +264,9 @@ namespace Tlang.Web
                               + AccessControlAllowOrigin
                               + AccessControlAllowMethods
                               + AccessControlAllowHeaders
-                              + "Cache-Control: no-cache\r\n"
+                              + "Cache-Control: no-cache, no-store, must-revalidate\r\n"
+                              + "Pragma: no-cache\r\n"
+                              + "Expires: 0\r\n"
                               + "Connection: keep-alive\r\n"
                               + "Content-Type: " + contentType + chh + "\r\n";
 
@@ -281,6 +283,21 @@ namespace Tlang.Web
 
         }
 
+        public static byte[] Message(string message, string responseCode, string contentType)// header and content
+        {
+
+            byte[] data = Encoding.ASCII.GetBytes(message);
+            string head = "HTTP/1.1 " + responseCode + "\r\n"
+                              + "Server: " + G.ServerName + "\r\n"
+                              + "Content-Length: " + data.Length.ToString() + "\r\n"
+                              + "Content-Type: " + contentType + "\r\n\r\n";
+            byte[] bhead = System.Text.Encoding.ASCII.GetBytes(head);
+            byte[] buffer = new byte[bhead.Length + data.Length];
+            System.Buffer.BlockCopy(bhead, 0, buffer, 0, bhead.Length);
+            System.Buffer.BlockCopy(data, 0, buffer, bhead.Length, data.Length);
+            return buffer;
+        }
+
 
         public static byte[] MessageRedirectWeb(string location, string[] header)// header and content
         {
@@ -290,6 +307,20 @@ namespace Tlang.Web
                              + AccessControlAllowMethods
                              + AccessControlAllowHeaders
                              + "Location: " + location + "\r\n";
+            foreach (string h in header)
+            {
+                head += h + "\r\n";
+            }
+            head += "\r\n";
+            return System.Text.Encoding.ASCII.GetBytes(head);
+        }
+
+        public static byte[] Unauthorized(string content, string[] header)
+        {
+            string head = "HTTP/1.1 401\r\n"
+                        + "Content-Length: 0\r\n"
+                        + "WWW-Authenticate: Basic realm=\"" + content + "\"\r\n";
+                                        
             foreach (string h in header)
             {
                 head += h + "\r\n";
@@ -361,6 +392,173 @@ namespace Tlang.Web
         }
 
         
+
+        #endregion
+
+        #region WebDAV
+
+        public static byte[] HandleOPTIONS()
+        {
+            string head = "HTTP/1.1 200 OK\r\n"
+            + "Date: " + System.DateTime.Now.ToString("R") + "\r\n"
+            + "Server: Tata\r\n"
+            + "Connection: Keep-Alive\r\n"
+            + "Allow: *r\n"
+            //+ "Allow: GET, OPTIONS, HEAD, PROPFIND, PROPPATCH, PUT, MKCOL, COPY, LOCK, UNLOCK\r\n"
+                //+ "MS-Author-Via: DAV\r\n"
+                //+ "DAV: 1,2\r\n"
+                //+ "Accept-Ranges: bytes\r\n"
+                //+ "Set-Cookie: session=webdav; Expires=" + DateTime.Now.AddDays(1).ToString("R") + "; Path=/\r\n"
+            + "Content-Length: 0\r\n\r\n";
+            return Encoding.ASCII.GetBytes(head);
+        }
+
+        public static byte[] HandlePROPFIND(string url, string deep)
+        {
+            
+            string content = "";
+            string header = "HTTP/1.1 207 Multi-Status\r\n"
+            + "Server: Tata\r\n"
+            + "Content-Type: application/xml; charset=\"utf-8\"\r\n"
+            + "Content-Length: {}\r\n"
+            + "Set-Cookie: session=webdav; Expires=" + DateTime.Now.AddDays(1).ToString("R") + "; Path=/\r\n"
+            + "Date: " + System.DateTime.Now.ToString("R") + "\r\n\r\n";
+
+            string hh = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?><d:multistatus xmlns:D=\"DAV:\">";
+            string kk = "</d:multistatus>";
+
+            string path = System.IO.Path.Combine(App.Program.MyPath, url);
+            if (Directory.Exists(path))
+            {
+                if (deep == "1")
+                {
+                    DirectoryInfo di = new DirectoryInfo(path);
+
+                    string mm = ResponseInfoFolder(url, di.LastWriteTime, di.CreationTime, di.Name); ;
+                    string d = "/";
+                    if (url.Length > 0)
+                    {
+                        d = "/" + url + "/";
+                    }
+                    DirectoryInfo[] dis = di.GetDirectories();
+                    foreach (DirectoryInfo d1 in dis)
+                    {
+                        mm += ResponseInfoFolder(url + "/" + d1.Name, d1.LastWriteTime, d1.CreationTime, d1.Name) + "\r\n";
+                        //Console.WriteLine(mm);
+                    }
+
+                    FileInfo[] fs = di.GetFiles();
+                    foreach (FileInfo f in fs)
+                    {
+                        mm += ResponseInfoFile(d + f.Name, f.LastWriteTime, (int)f.Length, f.CreationTime, f.Name) + "\r\n";
+                        //Console.WriteLine(mm);
+                    }
+
+                    content = hh + mm + kk;
+                }
+                if (deep == "0")
+                {
+                    DirectoryInfo di = new DirectoryInfo(path);
+                    string d = "/";
+                    if (url.Length > 0)
+                    {
+                        d = "/" + url + "/";
+                    }
+                    string mm = ResponseInfoFolder(d, di.LastWriteTime, di.CreationTime, di.Name);
+                    content = hh + mm + kk;
+                }
+
+
+            }
+            else
+            {
+                if (File.Exists(path))
+                {
+                    FileInfo f = new FileInfo(path);
+                    string d = "/";
+                    if (url.Length > 0)
+                    {
+                        d = "/" + url + "/";
+                    }
+                    string mm = ResponseInfoFile(d + f.Name, f.LastWriteTime, (int)f.Length, f.CreationTime, f.Name) + "\r\n";
+                    
+                    content = hh + mm + kk;
+
+                }
+                else
+                {
+                    FileInfo f = new FileInfo(path);
+                    string d = "/";
+                    if (url.Length > 0)
+                    {
+                        d = "/" + url + "/";
+                    }
+                    if (path.EndsWith(".ini"))
+                    {
+                        string mm = ResponseInfoFile404(d + f.Name) + "\r\n";
+
+                        content = hh + mm + kk;
+                        header = header.Replace("207 Multi-Status", "404 File Found");
+                    }
+                    else
+                    {
+                        string mm = ResponseInfoFile405(d + f.Name) + "\r\n";
+                        content = hh + mm + kk;
+                        header = header.Replace("207 Multi-Status", "405 Method Not Allowed");
+                    }
+                }
+            }
+
+
+            //Console.WriteLine(System.DateTime.Now.ToString("R"));
+            //Console.WriteLine(content);
+            
+            byte[] bodybytes = Encoding.UTF8.GetBytes(content);
+            byte[] headbytes = Encoding.ASCII.GetBytes(header.Replace("{}", bodybytes.Length.ToString()));
+            return F.AddBytes(headbytes, bodybytes);
+        }
+
+        static string ResponseInfoFolder(string url, DateTime last, DateTime create, string name)
+        {
+            return "<d:response>"
+            + "<d:href>/" + url + "</d:href>"
+            + "<d:propstat><d:status>HTTP/1.1 200 OK</d:status><d:prop><d:resourcetype><d:collection/></d:resourcetype>"
+            + "<d:getlastmodified>" + last.ToString("R") + "</d:getlastmodified>"
+            + "<d:getcontentlength>0</d:getcontentlength>"
+            + "<d:displayname>" + name + "</d:displayname>"
+            + "<d:creationdate>" + create.ToString("R") + "</d:creationdate>"
+            + "</d:prop></d:propstat></d:response>";
+
+        }
+        static string ResponseInfoFile(string url, DateTime last, int length, DateTime create, string name)
+        {
+            return "<d:response>"
+            + "<d:href>" + url + "</d:href>"
+            + "<d:propstat><d:status>HTTP/1.1 200 OK</d:status><d:prop><d:resourcetype/>"
+            + "<d:getlastmodified>" + last.ToString("R") + "</d:getlastmodified>"
+            + "<d:getcontentlength>" + length + "</d:getcontentlength>"
+            + "<d:getcontenttype>" + GetContentType(name) + "</d:getcontenttype>"
+            + "<d:displayname>" + name + "</d:displayname>"
+            + "<d:creationdate>" + create.ToString("R") + "</d:creationdate>"
+            + "</d:prop></d:propstat></d:response>";
+
+        }
+
+        static string ResponseInfoFile404(string url)
+        {
+            return "<d:response>"
+            + "<d:href>" + url + "</d:href>"
+            + "<d:propstat><d:status>HTTP/1.1 404 File Found</d:status></d:propstat></d:response>";
+
+        }
+
+        static string ResponseInfoFile405(string url)
+        {
+            return "<d:response>"
+            + "<d:href>" + url + "</d:href>"
+            + "<d:propstat><d:status>HTTP/1.1 405 Method Not Allowed</d:status></d:propstat></d:response>";
+
+        }
 
         #endregion
     }
