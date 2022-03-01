@@ -413,7 +413,7 @@ namespace Tlang.Web
             return Encoding.ASCII.GetBytes(head);
         }
 
-        public static byte[] HandlePROPFIND(string url, string deep)
+        public static byte[] HandlePROPFIND(string path ,string url, string deep)
         {
             
             string content = "";
@@ -427,7 +427,7 @@ namespace Tlang.Web
             string hh = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?><d:multistatus xmlns:D=\"DAV:\">";
             string kk = "</d:multistatus>";
 
-            string path = System.IO.Path.Combine(App.Program.MyPath, url);
+            path = System.IO.Path.Combine(path, url);
             if (Directory.Exists(path))
             {
                 if (deep == "1")
