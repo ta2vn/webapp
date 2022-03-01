@@ -19,7 +19,11 @@ if (loc.protocol === "https:") {
     new_uri = "ws:";
 }
 new_uri += "//" + loc.host;
-new_uri += loc.pathname + "/to/ws";
+new_uri += loc.pathname + "/";
+var u = new URL(window.location.href);
+var room = u.searchParams.get("room");
+if(room) 
+	new_uri += "/?room="+room;
     var button = document.querySelector("button"),
         output = document.querySelector("#output"),
         textarea = document.querySelector("textarea"),

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css'>
+    <style>
+        @import url(https://fonts.googleapis.com/css?family=Lato:400,700);
+        *,
+        *:before,
+        *:after {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font: 14px/20px "Lato", Arial, sans-serif;
+        }
+        
+        .container {
+            display: flex;
+            width: 100%;
+            background-color: crimson;
+            height: calc(100vh);
+        }
+        
+        .leftbar {
+            width: 65px;
+            background-color: whitesmoke;
+            transition: width 0.3s;
+            overflow-y: auto;
+        }
+        
+        .leftbar::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .leftbar:hover {
+            width: 200px;
+        }
+        
+        li {
+            display: block;
+            white-space: nowrap;
+        }
+        
+        li>* {
+            display: inline-block;
+            margin-left: 5px;
+            margin-top: 5px;
+            vertical-align: middle;
+        }
+        
+        .main {
+            background-color: lawngreen;
+            padding: 0px;
+            display: flex;
+            height: calc(100vh);
+            flex: 1;
+            flex-direction: column;
+        }
+        
+        .main>* {
+            width: 100%
+        }
+        
+        .header {
+            background-color: cornflowerblue;
+            height: 80px;
+        }
+        
+        .header>* {
+            display: inline-block;
+            margin-left: 5px;
+            margin-top: 5px;
+            vertical-align: top;
+        }
+        
+        .title {
+            color: aliceblue;
+        }
+        
+        .content {
+            background-color: white;
+            flex: 1;
+            overflow-y: scroll;
+        }
+        
+        .content::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .footer {
+            background-color: rgb(224, 224, 226);
+            height: 70px;
+            padding: 7px;
+        }
+        
+        .inputchat {
+            width: 100%;
+            height: 100%;
+            outline: none;
+            border: none;
+            border-radius: 7px;
+        }
+        
+        .avatar {
+            object-fit: cover;
+            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            border: 2px solid gray;
+            box-sizing: inherit;
+        }
+        
+        .onlineb {
+            border: 2px solid gold;
+        }
+        
+        .online {
+            color: gold;
+        }
+        
+        @media screen and (max-width: 600px) {
+            .container {
+                flex-direction: column;
+            }
+            .leftbar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+
+<body>
+    <div class="container">
+        <div class="leftbar">
+            <div style="padding: 5px;">
+                <input type="text" style="width: 100%;" placeholder="Search">
+            </div>
+            <ul>
+                <li>
+
+                    <img class="avatar onlineb" src="https://pickaface.net/gallery/avatar/unr_demo_181102_1037_17ut.png" alt="avatar" />
+                    <div class="about">
+                        <div class="name">Vincent Porter</div>
+                        <div class="status">
+                            <i class="fa fa-circle online"></i> online
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <img class="avatar onlineb" src="https://pickaface.net/gallery/avatar/20130526_044720_1501_kikiwawa.png" alt="avatar" />
+                    <div class="about">
+                        <div class="name">Vincent Porter</div>
+                        <div class="status">
+                            <i class="fa fa-circle online"></i> online
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <img class="avatar onlineb" src="https://pickaface.net/gallery/avatar/22763479_200716_2159_ngi9niq.png" alt="avatar" />
+                    <div class="about">
+                        <div class="name">Vincent Porter</div>
+                        <div class="status">
+                            <i class="fa fa-circle online"></i> online
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <img class="avatar" src="https://pickaface.net/gallery/avatar/unr_brendan_180504_2129_9bs6qa.png" alt="avatar" />
+                    <div class="about">
+                        <div class="name">Vincent Porter</div>
+                        <div class="status">
+                            <i class="fa fa-circle online"></i> online
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <img class="avatar" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_05.jpg" alt="avatar" />
+                    <div class="about">
+                        <div class="name">Vincent Porter</div>
+                        <div class="status">
+                            <i class="fa fa-circle online"></i> online
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            <li>
+
+                <img class="avatar" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_01.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            <li>
+                <img class="avatar" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_02.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            <li>
+                <img class="avatar" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_03.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            <li>
+                <img class="avatar" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_04.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            <li>
+                <img class="avatar" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_05.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            </ul>
+            <li>
+
+                <img class="avatar" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_01.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            <li>
+                <img class="avatar" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_02.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            <li>
+                <img class="avatar" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_03.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            <li>
+                <img class="avatar" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_04.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            <li>
+                <img class="avatar" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_05.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            </ul>
+            <li>
+
+                <img class="avatar" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_01.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            <li>
+                <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_02.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            <li>
+                <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_03.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            <li>
+                <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_04.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            <li>
+                <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_05.jpg" alt="avatar" />
+                <div class="about">
+                    <div class="name">Vincent Porter</div>
+                    <div class="status">
+                        <i class="fa fa-circle online"></i> online
+                    </div>
+                </div>
+            </li>
+            </ul>
+        </div>
+        <div class="main">
+            <div class="header">
+                <img class="avatar" src="https://pickaface.net/gallery/avatar/unr_brendan_180504_2129_9bs6qa.png" alt="avatar" />
+                <h1 class="title">Ok 3 con de</h1>
+            </div>
+            <div class="content">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi aut laborum quibusdam corporis iure alias iste. Non voluptatibus reprehenderit repellat, numquam magnam aperiam ipsum? Deserunt excepturi eos quaerat aliquam quidem Lorem ipsum
+                dolor sit amet consectetur adipisicing elit. Similique quis aliquid repudiandae reiciendis porro molestias! Voluptate, est deserunt eligendi ratione ea expedita, fugiat quo et nesciunt, ipsa quae ut sunt. Lorem ipsum dolor sit amet consectetur
+                adipisicing elit. Nemo ipsa minima, sequi aliquam, expedita quo fugit necessitatibus consequatur natus temporibus rerum facilis dolor obcaecati labore inventore quod, ducimus architecto? Distinctio?</div>
+            <div class="footer">
+                <textarea class="inputchat" style="resize: none;padding: 5px 10px;"></textarea>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll("li").forEach(function(li) {
+            li.addEventListener("click", function() {
+                let head = document.querySelector(".header")
+                head.innerHTML = li.innerHTML;
+            })
+        })
+    </script>
+
+</body>
+
+</html>

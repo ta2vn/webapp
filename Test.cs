@@ -224,5 +224,18 @@ namespace App
             }
             return filename + " OK";
         }
+
+        public static object WebSocketConneted(Request req, Response res)
+        {
+            req.Room = req.Get.GetString("room");
+            return "OK";
+        }
+
+        public static object WebSocketRoom(Request req, Response res)
+        {
+            string text = Encoding.UTF8.GetString(req.Data);
+            res.SendSocketRoom(text, req.Room);
+            return "OK";
+        }
     }
 }
